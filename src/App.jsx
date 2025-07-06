@@ -8,40 +8,109 @@ const App = () => {
   const [walletAddress, setWalletAddress] = useState(null);
   const [chats, setChats] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const getChatIndex = (id) => chats.findIndex((c) => c.id === id);
 
   const handleNewMessage = async (message) => {
-    const chatId = selectedChatId || `chat-${Date.now()}`;
-    const newEntry = { role: 'user', content: message };
-    const updatedChats = [...(chats.find(c => c.id === chatId)?.messages || []), newEntry];
+    let chatId = selectedChatId;
 
-    setChats(prev =>
-      prev.some(c => c.id === chatId)
-        ? prev.map(c => c.id === chatId ? { ...c, messages: updatedChats } : c)
-        : [...prev, { id: chatId, title: message.slice(0, 20), messages: updatedChats }]
+    if (!chatId) {
+      chatId = `chat-${Date.now()}`;
+      const newChat = {
+        id: chatId,
+        title: message.slice(0, 20),
+        messages: [],
+        lastUpdated: Date.now()
+      };
+      setChats((prev) => [newChat, ...prev]);
+      setSelectedChatId(chatId);
+    }
+
+    // Add user message
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === chatId
+          ? {
+              ...c,
+              messages: [...c.messages, { role: 'user', content: message }],
+              title: c.messages.length === 0 ? message.slice(0, 20) : c.title,
+              lastUpdated: Date.now()
+            }
+          : c
+      )
     );
-    setSelectedChatId(chatId);
 
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: updatedChats }),
-    });
-    const data = await response.json();
+    setLoading(true);
 
-    const updatedWithBot = [...updatedChats, { role: 'assistant', content: data.reply }];
-    setChats(prev =>
-      prev.map(c => c.id === chatId ? { ...c, messages: updatedWithBot } : c)
+    // Simulate GPT delay
+    setTimeout(() => {
+      setChats((prev) => {
+        const updated = prev.map((c) =>
+          c.id === chatId
+            ? {
+                ...c,
+                messages: [
+                  ...c.messages,
+                  { role: 'assistant', content: 'This is a test reply from GPT.' }
+                ],
+                lastUpdated: Date.now()
+              }
+            : c
+        );
+
+        // Move updated chat to top
+        updated.sort((a, b) => b.lastUpdated - a.lastUpdated);
+        return updated;
+      });
+
+      setLoading(false);
+    }, 2000);
+  };
+
+  const handleNewChat = () => {
+    const newId = `chat-${Date.now()}`;
+    const newChat = { id: newId, title: 'New Chat', messages: [], lastUpdated: Date.now() };
+    setChats((prev) => [newChat, ...prev]);
+    setSelectedChatId(newId);
+  };
+
+  const handleRenameChat = (chatId, newTitle) => {
+    setChats((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, title: newTitle } : c))
     );
   };
 
-  const selectedMessages = chats.find(c => c.id === selectedChatId)?.messages || [];
+  const handleDeleteChat = (chatId) => {
+    setChats((prev) => prev.filter((c) => c.id !== chatId));
+    if (chatId === selectedChatId) setSelectedChatId(null);
+  };
+
+  const selectedMessages = chats.find((c) => c.id === selectedChatId)?.messages || [];
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar chats={chats} setSelectedChatId={setSelectedChatId} />
+      {!sidebarCollapsed && (
+        <Sidebar
+          chats={chats}
+          setSelectedChatId={setSelectedChatId}
+          selectedChatId={selectedChatId}
+          onNewChat={handleNewChat}
+          onCollapse={() => setSidebarCollapsed(true)}
+          onRename={handleRenameChat}
+          onDelete={handleDeleteChat}
+        />
+      )}
+      {sidebarCollapsed && (
+        <div style={{ width: '40px', padding: '10px' }}>
+          <button onClick={() => setSidebarCollapsed(false)}>&gt;</button>
+        </div>
+      )}
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <ConnectWallet setWalletAddress={setWalletAddress} walletAddress={walletAddress} />
-        <ChatWindow messages={selectedMessages} />
+        <ChatWindow messages={selectedMessages} loading={loading} />
         <ChatInput onSend={handleNewMessage} />
       </div>
     </div>
