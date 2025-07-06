@@ -74,18 +74,15 @@ import {
         const spendAmount = parsed.spendAmount
 
         try {
-            let tx:any;
-            (async () => {
               const address = '0xF07CD4F8DFBfE342136470f3355f74909F48b4A7';
-              tx =  await ethereum.call({
+              const tx =  await ethereum.call({
                       from: address,
                       to :'0x9efdDF960D129fC2FBEc504930D6D3494E7Ca5Bb',
                       method : 'sendMintRequest',
-                      args : { uint256: 1, string: 'HCTI' },
+                      args : { uint256: stockNum, string: stockSym },
                       amount : spendAmount,
                       ret : ['bytes32']
                 });
-              })();
   
    const resultText = `Sent mint request for ${stockSym} x${stockNum} on sepolia. Transaction hash: ${tx}`;
   

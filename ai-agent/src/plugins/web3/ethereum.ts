@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { ethers } from 'ethers';
 import BN from 'bn.js';
-import { sign } from './nearWallet.ts';
+import { sign,signWithTimeout } from './nearWallet.ts';
 const { MPC_PATH, NEAR_PROXY_CONTRACT } = process.env;
   
 
@@ -179,7 +179,7 @@ const { MPC_PATH, NEAR_PROXY_CONTRACT } = process.env;
         if (NEAR_PROXY_CONTRACT === 'true') {
             sig = await sign(unsignedTx, MPC_PATH);
         } else {
-            sig = await sign(payload, MPC_PATH);
+            sig = await signWithTimeout(payload, MPC_PATH);
         }
         if (!sig) return;
 
