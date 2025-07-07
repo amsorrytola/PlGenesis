@@ -1,4 +1,4 @@
-# 🌐 NEAR.AI — Borderless Tokenization Powered by AI Agents
+# 🌐 NEAR.AI — Cross Chain Tokenization Powered by AI Agents
 
 > Break asset barriers. Simplify cross-chain access. Let AI handle Web3.
 
@@ -48,87 +48,73 @@ Powered by **ElizaOS**, users describe actions in natural language (e.g., _“Mi
 
 ## ⚙️ System Architecture
 
-```mermaid
-graph TD
-    A[User + Agent on NEAR] -->|Describe action| B(ElizaOS Agent)
-    B -->|NEAR Key Signature| C[MPC Contract]
-    C -->|Validated Signature| D{Target Chain}
-    D --> EVM[Ethereum dNEAR Contract]
-    D --> SOL[Solana dNEAR Contract]
-    EVM -->|Mint/Redeem| TOK[dNEAR Tokens]
-    SOL -->|Mint/Redeem| TOK
-    EVM --> OR1[EVM Oracle]
-    SOL --> OR2[Solana Oracle]
-    OR1 & OR2 --> RW[🌍 Real World Asset Data]
-```
+![Architecture](./near.ai.jpg)
 
 ---
 
 ## 🚀 Example Flow
 
-> _“Mint 1 tokenized Apple stock on Ethereum”_
+## 🟢 Mint Flow
 
-1. User sends a natural language command.
-2. ElizaOS interprets and converts it to smart contract logic.
-3. NEAR agent signs a cross-chain request.
-4. Asset is verified via Chainlink Oracle.
-5. Token minted on Ethereum via Solidity contract.
+1. **User chats with the ElizaOS agent on NEAR**  
+   > _"Buy 3 shares of AAPL using 10 ETH"_
 
----
+2. **Agent sends the mint transaction** using NEAR private key to the **MPC contract** to sign.
+   
+4. **MPC contract responds with the signature.
 
-## 🔒 Security Considerations
+5. **Signed transaction is broadcasted** to the `dNEAR` smart contract on **Ethereum**
 
-- NEAR’s signature system ensures minimal key exposure.
-- Chainlink provides decentralized oracle data to avoid centralization risks.
-- MPC contract validates cross-chain actions before executing them.
+6. **Oracle**:
+   - Fetches real-time **AAPL stock price (USD)**
+   - Places an **off-chain order** to buy stock via custom JS
 
----
+7. **Chainlink Price Feed**:
+   - Fetches **ETH/USD** price
+
+8. **Smart Contract Logic**:
+   ```solidity
+   if (ETH_in_usd >= stock_price_usd * quantity) {
+       mint DNEAR token(s);
+       update totalHoldings[requester][stock];
+       refund excess ETH;
+   }
+
+
+## 🚀 Redeem Flow
+
+1. **User chats with the ElizaOS agent on NEAR**  
+   > _"Sell 3 shares of AAPL"_
+
+2. **Agent sends the redeem transaction** using NEAR private key to the **MPC contract** to sign.
+   
+4. **MPC contract responds with the signature.
+
+5. **Signed transaction is broadcasted** to the `dNEAR` smart contract on **Ethereum**.
+
+6. **Oracle**:
+   - Fetches real-time **AAPL stock price (USD)**
+   - Places an **off-chain order** to buy stock via custom JS
+
+7. **Chainlink Price Feed**:
+   - Fetches **ETH/USD** price
+
+8. **Smart Contract Logic**:
+   ```solidity
+   if (totalHoldings[requester][stock] >= quantity) {
+   burn DNEAR token(s)
+   update totalHoldings
+   send back  ETH equivalent to stock_price_usd * quantity   }  
 
 ## 📂 Folder Structure
 
 ```
-/contracts       -> Solidity contracts (dNEAR logic, oracles)
-/agent           -> ElizaOS agent logic
-/near-sdk        -> NEAR integration, cross-chain key handling
-/frontend        -> (optional) Web interface to interact
+/foundry/src/dNEAR.sol       -> Solidity contract (dNEAR logic, oracles)
+/ai-agent/src                -> ElizaOS agent logic
 ```
 
 ---
 
-## 🧪 Run Locally
+## 🌍 Demo
 
-```bash
-# Install dependencies
-npm install
-
-# Start local agent
-npm run agent
-
-# Deploy contracts (Ethereum/Solana)
-forge deploy
-
-# Start frontend (if applicable)
-npm run dev
-```
-
----
-
-## 👨‍💻 Team
-
-- 🤖 AI & Agent Dev — [You / Teammate Name]
-- 🔐 Blockchain Integration — [You / Teammate Name]
-- 🔗 Oracle + Solidity Contracts — [You / Teammate Name]
-
----
-
-## 💡 Inspiration
-
-Inspired by the vision of seamless AI-powered financial access. We aim to remove technical friction for billions of Web2 users ready to onboard into Web3.
-
----
-
-## 🌍 Demo + Links
-
-- 🔗 [Live Demo (if any)](https://your-live-demo-link.com)
 - 📽️ [Demo Video](https://demo-video-link.com)
-- 📜 [Whitepaper / Presentation](https://drive-link-or-slides.com)
