@@ -5,7 +5,6 @@ import {
   type Project,
   type ProjectAgent,
 } from '@elizaos/core';
-import starterPlugin from './plugin.ts';
 import { web3Plugin } from './plugins/web3/index.ts';
 
 /**
